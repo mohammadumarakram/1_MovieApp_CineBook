@@ -1,0 +1,39 @@
+
+@import url('https://fonts.googleapis.com/css2?family=Libertinus+Sans:ital,wght@0,400;0,700;1,400&family=Outfit:wght@100..900&display=swap');
+
+
+@import "tailwindcss"; 
+
+@theme {
+  --color-primary: #F84565;
+  --color-primary-dull: #D63854;
+}
+
+
+.no-scrollbar{
+
+  scrollbar-width: none;
+
+
+
+
+
+
+
+
+}
+*{
+    font-family: "Outfit", sans-serif;
+    /* Scrollbar properties (Likely targeting a scrollable element) */
+    scrollbar-width: thin;
+    scrollbar-color: #787777 #1e1e1e;
+}
+
+
+
+/* Body selector */
+body {
+  color: white;
+  background-color: #09090B;
+}
+
