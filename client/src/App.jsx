@@ -20,7 +20,7 @@ const App = () => {
 
     {/* main routing navbar and footer are default on each route */}
     {!isAdminRoute && <Navbar/>} 
-   
+    
     <Routes>
       <Route path="/" element={<Home/>} />
       <Route path="/movies" element={<Movies/>} />
