@@ -22,6 +22,16 @@
     scrollbar-color: #787777 #1e1e1e;
 }
 
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+}
+
+::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+}
+
+
 
 
 /* Body selector */
