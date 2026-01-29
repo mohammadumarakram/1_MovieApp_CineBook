@@ -12,7 +12,7 @@ const app=express();
 const port=3000;
 
 //call connect db
-connectDB();
+await connectDB();
 
 
 
