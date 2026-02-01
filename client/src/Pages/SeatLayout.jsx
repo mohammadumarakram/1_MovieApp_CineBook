@@ -12,8 +12,20 @@ import {
 import isoTimeFormat from "../lib/isoTimeFormat";
 import BlurCircle from "../components/BlurCircle";
 import toast from "react-hot-toast";
+import { useAppContext } from "../context/appContext";
 
 const SeatLayout = () => {
+
+     const {
+      shows,
+      axios,
+      getToken,
+      user,
+      
+      image_base_url,
+    } = useAppContext();
+
+
   const { id, date } = useParams();
 
   const groupRows = [
@@ -26,6 +38,8 @@ const SeatLayout = () => {
 
   const navigate = useNavigate();
 
+  const [occupiedSeats, setoccupiedSeats] = useState([])
+
   const [selectedSeats, setSelectedSeats] = useState([]);
 
   //gets selected when clicing a time
@@ -34,18 +48,48 @@ const SeatLayout = () => {
   const [show, setShow] = useState(null);
 
   const getShow = async () => {
-    const show = dummyShowsData.find((show) => show._id === id);
+   try {
 
-    if (show) {
-      setShow({
-        movie: show,
-        dateTime: dummyDateTimeData,
-      });
+    const {data}=await axios.get(`/api/show/${id}`)
+    if(data.success){
+      setShow(data);
     }
-  };
+   } catch (error) {
+    console.error(error);
+
+    
+   }
+  }; 
+
+
+  const getoccupiedseats=async()=>{
+    try {
+
+      const {data}=await axios.get(`/api/bookings/seats/${selectedTime.showId}`)
+
+      if(data.success){
+        setoccupiedSeats(data.occupiedSeats);
+        console.log(data.occupiedSeats);
+        
+      }
+
+      else{
+        toast.error(data.message);
+      }
+      
+    } catch (error) {
+       console.error(error);
+      
+    }
+  }
   const handleSeatClick = (seatId) => {
     if (!selectedTime) {
       return toast("Please select time first");
+    }
+
+
+    if(occupiedSeats.includes(seatId)){
+      return toast("This seat is already booked")
     }
     if (!selectedSeats.includes(seatId) && selectedSeats.length > 4) {
       return toast("You can only select 5 seats");
@@ -59,6 +103,41 @@ const SeatLayout = () => {
     );
   };
 
+
+
+
+
+  const bookTickets=async()=>{
+
+    try {
+      if(!user){
+        return toast.error("Please login first");
+      }
+
+      if(!selectedTime || !selectedSeats.length){
+        return toast.error("Please select time and seats first");
+      }
+
+      const {data}=await axios.post(`/api/bookings/create`,{showId:selectedTime.showId,selectedSeats}, {
+        headers: { Authorization: `Bearer ${await getToken()}` },
+      }   )
+
+      if(data.success){
+       window.location.href=data.url;
+      }
+
+      else{
+        toast.error(data.message);
+      }
+      
+    } catch (error) {
+      console.log(error.message);
+      
+      
+    }
+
+  }
+
   //its a component can even place in a separate file returns a single div
   const renderSeats = (row, count = 7) => {return (
     <div key={row} className="flex gap-2 mt-2">
@@ -70,10 +149,15 @@ const SeatLayout = () => {
               key={seatId}
               //you can pass a variable inside return inside a handler function so each button is like handleSeatselect(A1) or A2 like this hardcoded values not variable arguement
               onClick={() => handleSeatClick(seatId)}
-              className={`h-8 w-8 rounded border border-primary/60 cursor-pointer ${selectedSeats.includes(seatId) && "bg-primary text-white"}`}
+              className={`h-8 w-8 rounded border border-primary/60 cursor-pointer ${selectedSeats.includes(seatId) && "bg-primary text-white"} ${occupiedSeats.includes(seatId) && "opacity-50"}   `}
             >
               {seatId}
             </button>
+
+          
+
+
+
           );
         })}
       </div>
@@ -83,6 +167,15 @@ const SeatLayout = () => {
   useEffect(() => {
     getShow();
   }, []);
+
+  useEffect(() => {
+    if(selectedTime){
+      getoccupiedseats();
+    }
+    
+  }, [selectedTime]);
+
+
 
   return show ? (
     <div
@@ -141,7 +234,7 @@ h-max md:sticky md:top-30"
         {/* 3) proceed button  */}
 
         <button
-          onClick={() => navigate("/my-bookings")}
+          onClick={bookTickets}
           className="flex items-center gap-1 mt-20 px-10 py-3 text-sm bg-primary hover:bg-primary-dull transition rounded-full font-medium cursor-pointer active:scale-95"
         >
           Proceed to Checkout

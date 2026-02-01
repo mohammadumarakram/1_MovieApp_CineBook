@@ -5,11 +5,14 @@ import { assets } from '../assets/assets'
 import { MenuIcon, SearchCheckIcon, SearchIcon, TicketPlus, XIcon } from 'lucide-react'
 import { useState } from 'react'
 import { useClerk, UserButton, useUser } from '@clerk/clerk-react'
+import { useAppContext } from '../context/appContext'
 
 
 
 
 const Navbar = () => {
+   const {favoriteMovies}=useAppContext();
+
 
   const [isOpen, setIsOpen] = useState(false);
 
@@ -52,7 +55,9 @@ const Navbar = () => {
     <Link onClick={()=>{scrollTo(0,0); setIsOpen(false)}}  to='/movies'>Movies</Link>
     <Link onClick={()=>{scrollTo(0,0); setIsOpen(false)}}  to='/'>Theatres</Link>
     <Link onClick={()=>{scrollTo(0,0); setIsOpen(false)}}  to='/'>Releases</Link>
-    <Link onClick={()=>{scrollTo(0,0); setIsOpen(false)}} to='/favourite'>Favourites</Link>
+
+    {favoriteMovies.length>0 &&
+    <Link onClick={()=>{scrollTo(0,0); setIsOpen(false)}} to='/favourite'>Favourites</Link>}
     
   </div>
 

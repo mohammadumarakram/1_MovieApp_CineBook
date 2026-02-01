@@ -4,10 +4,8 @@ import Title from "../../components/admin/Title";
 import { kConverter } from "../../lib/kConverter";
 import { CheckIcon, DeleteIcon, StarIcon } from "lucide-react";
 import Loading from "../../components/Loading";
-// Assuming these are local components/icons and utility functions
-// import { Title } from './components/Title';
-// import { StarIcon, CheckIcon } from './icons';
-// import { kConverter } from './utils';
+import { useAppContext } from "../../context/appContext";
+import toast from "react-hot-toast";
 
 const AddShow = () => {
   const currency = import.meta.env.VITE_CURRENCY;
@@ -18,53 +16,111 @@ const AddShow = () => {
   const [dateTimeSelection, setDateTimeSelection] = useState({});
   const [dateTimeInput, setDateTimeInput] = useState("");
   const [showPrice, setShowPrice] = useState("");
+  const [addingShow, setAddingShow] = useState(false);
+
+  const { axios, getToken, user, image_base_url } = useAppContext();
 
   // Data Fetching Logic
   const fetchNowPlayingMovies = async () => {
-    // In your images, this is pulling from dummyShowsData
-    setNowPlayingMovies(dummyShowsData);
+    try {
+      const { data } = await axios.get("/api/show/now-playing", {
+        headers: { Authorization: `Bearer ${await getToken()}` },
+      });
+
+      if (data.success) {
+        setNowPlayingMovies(data.movies);
+      }
+    } catch (error) {
+      console.error("error fetching movies", error);
+    }
   };
 
-const handleDateTimeAdd = () => {
-  if (!dateTimeInput) return;
+  const handleDateTimeAdd = () => {
+    if (!dateTimeInput) return;
 
-  const [date, time] = dateTimeInput.split("T");
-  if (!date || !time) return;
+    const [date, time] = dateTimeInput.split("T");
+    if (!date || !time) return;
 
-  setDateTimeSelection((prev) => {
-    const times = prev[date] || [];
+    setDateTimeSelection((prev) => {
+      const times = prev[date] || [];
 
-    if (!times.includes(time)) {
-      return { ...prev, [date]: [...times, time] };
+      if (!times.includes(time)) {
+        return { ...prev, [date]: [...times, time] };
+      }
+
+      return prev;
+    });
+  };
+
+  const handleRemoveTime = (date, time) => {
+    setDateTimeSelection((prev) => {
+      const filteredTimes = prev[date].filter((t) => t !== time);
+
+      if (filteredTimes.length === 0) {
+        const { [date]: _, ...rest } = prev;
+        return rest;
+      }
+
+      return {
+        ...prev,
+        [date]: filteredTimes,
+      };
+    });
+  };
+
+  const handleSubmit = async () => {
+    try {
+      setAddingShow(true);
+
+      // if(!selectedMovie || Object.keys(dateTimeSelection.length===0|| !showPrice)){
+      //   return toast('Missing required fields');
+      // }
+
+      if ( 
+        !selectedMovie ||
+        Object.keys(dateTimeSelection).length === 0 ||
+        !showPrice
+      ) {
+        toast.error("Missing required fields");
+        setAddingShow(false);
+        return;
+      }
+
+      const showsInput = Object.entries(dateTimeSelection).map(
+        ([date, time]) => ({ date, time }),
+      );
+
+      const payload = {
+        movieId: selectedMovie,
+        showsInput,
+        showPrice: Number(showPrice),
+      };
+
+      const { data } = await axios.post("/api/show/add", payload, {
+        headers: { Authorization: `Bearer ${await getToken()}` },
+      });
+
+      if (data.success) {
+        toast.success(data.message);
+        setSelectedMovie(null);
+        setDateTimeSelection({});
+        setShowPrice("");
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error) {
+      console.log("Submission error", error);
+      toast.error("An error occurred please try again");
     }
 
-    return prev;
-  });
-};
-
-const handleRemoveTime = (date, time) => {
-  setDateTimeSelection((prev) => {
-    const filteredTimes = prev[date].filter((t) => t !== time);
-
-    if (filteredTimes.length === 0) {
-      const { [date]: _, ...rest } = prev;
-      return rest;
-    }
-
-    return {
-      ...prev,
-      [date]: filteredTimes,
-    };
-  });
-};
-
-
-
-
+    setAddingShow(false);
+  };
 
   useEffect(() => {
-    fetchNowPlayingMovies();
-  }, []);
+    if (user) {
+      fetchNowPlayingMovies();
+    }
+  }, [user]);
 
   return nowPlayingMovies.length > 0 ? (
     <>
@@ -84,7 +140,7 @@ const handleRemoveTime = (date, time) => {
               {/* Movie Poster and Overlay Info */}
               <div className="relative rounded-lg overflow-hidden">
                 <img
-                  src={movie.poster_path}
+                  src={image_base_url + movie.poster_path}
                   alt={movie.title}
                   className="w-full object-cover brightness-90"
                 />
@@ -158,64 +214,45 @@ const handleRemoveTime = (date, time) => {
         </div>
       </div>
 
-
-
       {/* Display Selected Times */}
-{Object.keys(dateTimeSelection).length > 0 && (
-  <div className="mt-6">
-    <h2 className="mb-2">Selected Date-Time</h2>
-    <ul className="space-y-3">
-      {Object.entries(dateTimeSelection).map(([date, times]) => (
-        <li key={date}>
-          <div className="font-medium">{date}</div>
-          <div className="flex flex-wrap gap-2 mt-1 text-sm">
-            {times.map((time) => (
-              <div 
-                key={time} 
-                className="border border-primary px-2 py-1 flex items-center rounded"
-              >
-                <span>{time}</span>
-                <DeleteIcon 
-                  onClick={() => handleRemoveTime(date, time)} 
-                  width={15} 
-                  className="ml-2 text-red-500 hover:text-red-700 cursor-pointer" 
-                />
-              </div>
+      {Object.keys(dateTimeSelection).length > 0 && (
+        <div className="mt-6">
+          <h2 className="mb-2">Selected Date-Time</h2>
+          <ul className="space-y-3">
+            {Object.entries(dateTimeSelection).map(([date, times]) => (
+              <li key={date}>
+                <div className="font-medium">{date}</div>
+                <div className="flex flex-wrap gap-2 mt-1 text-sm">
+                  {times.map((time) => (
+                    <div
+                      key={time}
+                      className="border border-primary px-2 py-1 flex items-center rounded"
+                    >
+                      <span>{time}</span>
+                      <DeleteIcon
+                        onClick={() => handleRemoveTime(date, time)}
+                        width={15}
+                        className="ml-2 text-red-500 hover:text-red-700 cursor-pointer"
+                      />
+                    </div>
+                  ))}
+                </div>
+              </li>
             ))}
-          </div>
-        </li>
-      ))}
-    </ul>
-  </div>
-)}
+          </ul>
+        </div>
+      )}
 
-
-<button className="bg-primary text-white px-8 py-2 mt-6 rounded hover:bg-primary/90 transition-all cursor-pointer">
-  Add Show
-</button>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+      <button
+        className="bg-primary text-white px-8 py-2 mt-6 rounded hover:bg-primary/90 transition-all cursor-pointer "
+        disabled={addingShow}
+        onClick={handleSubmit}
+      >
+        Add Show
+      </button>
     </>
   ) : (
-    
-      <Loading />
-    
+    <Loading />
   );
 };
 

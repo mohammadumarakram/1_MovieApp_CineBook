@@ -13,9 +13,15 @@ import Dashboard from "./Pages/admin/Dashboard";
 import AddShow from "./Pages/admin/AddShow";
 import ListBookings from "./Pages/admin/ListBookings";
 import ListShow from "./Pages/admin/ListShow";
+import { useAppContext } from "./context/appContext";
+import { SignIn } from "@clerk/clerk-react";
+import Loading from "./components/Loading";
 
 const App = () => {
   const isAdminRoute = useLocation().pathname.startsWith("/admin");
+
+  const {user}=useAppContext();
+
 
   return (
     <>
@@ -30,9 +36,15 @@ const App = () => {
         <Route path="/movies/:id" element={<MovieDetails />} />
         <Route path="/movies/:id/:date" element={<SeatLayout />} />
         <Route path="/my-bookings" element={<MyBookings />} />
+        <Route path="loading/:nextUrl" element={<Loading />} />
         <Route path="/favourite" element={<Favourite />} />
 
-        <Route path="/admin/*" element={<Layout />}>
+        <Route path="/admin/*" element={user?<Layout />:(
+
+          <div className="min-h-screen flex justify-center items-center">
+            <SignIn fallbackRedirectUrl={'/admin'}/>
+          </div>
+        )}>
           {/* // in route /admin default is dashboard along with layout in rest its just layout and the defined ones */}
           <Route index element={<Dashboard />} />
           <Route path="add-shows" element={<AddShow />} />
