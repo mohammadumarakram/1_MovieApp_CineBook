@@ -4,7 +4,7 @@ import Title from "../../components/admin/Title";
 import { kConverter } from "../../lib/kConverter";
 import { CheckIcon, DeleteIcon, StarIcon } from "lucide-react";
 import Loading from "../../components/Loading";
-import { useAppContext } from "../../context/appContext";
+import { useAppContext } from "../../context/AppContext";
 import toast from "react-hot-toast";
 
 const AddShow = () => {
@@ -76,7 +76,7 @@ const AddShow = () => {
       //   return toast('Missing required fields');
       // }
 
-      if ( 
+      if (
         !selectedMovie ||
         Object.keys(dateTimeSelection).length === 0 ||
         !showPrice

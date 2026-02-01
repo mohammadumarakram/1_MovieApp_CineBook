@@ -12,19 +12,17 @@ import {
 import isoTimeFormat from "../lib/isoTimeFormat";
 import BlurCircle from "../components/BlurCircle";
 import toast from "react-hot-toast";
-import { useAppContext } from "../context/appContext";
+import { useAppContext } from "../context/AppContext";
 
 const SeatLayout = () => {
+  const {
+    shows,
+    axios,
+    getToken,
+    user,
 
-     const {
-      shows,
-      axios,
-      getToken,
-      user,
-      
-      image_base_url,
-    } = useAppContext();
-
+    image_base_url,
+  } = useAppContext();
 
   const { id, date } = useParams();
 
@@ -38,7 +36,7 @@ const SeatLayout = () => {
 
   const navigate = useNavigate();
 
-  const [occupiedSeats, setoccupiedSeats] = useState([])
+  const [occupiedSeats, setoccupiedSeats] = useState([]);
 
   const [selectedSeats, setSelectedSeats] = useState([]);
 
@@ -48,48 +46,39 @@ const SeatLayout = () => {
   const [show, setShow] = useState(null);
 
   const getShow = async () => {
-   try {
-
-    const {data}=await axios.get(`/api/show/${id}`)
-    if(data.success){
-      setShow(data);
-    }
-   } catch (error) {
-    console.error(error);
-
-    
-   }
-  }; 
-
-
-  const getoccupiedseats=async()=>{
     try {
+      const { data } = await axios.get(`/api/show/${id}`);
+      if (data.success) {
+        setShow(data);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
-      const {data}=await axios.get(`/api/bookings/seats/${selectedTime.showId}`)
+  const getoccupiedseats = async () => {
+    try {
+      const { data } = await axios.get(
+        `/api/bookings/seats/${selectedTime.showId}`,
+      );
 
-      if(data.success){
+      if (data.success) {
         setoccupiedSeats(data.occupiedSeats);
         console.log(data.occupiedSeats);
-        
-      }
-
-      else{
+      } else {
         toast.error(data.message);
       }
-      
     } catch (error) {
-       console.error(error);
-      
+      console.error(error);
     }
-  }
+  };
   const handleSeatClick = (seatId) => {
     if (!selectedTime) {
       return toast("Please select time first");
     }
 
-
-    if(occupiedSeats.includes(seatId)){
-      return toast("This seat is already booked")
+    if (occupiedSeats.includes(seatId)) {
+      return toast("This seat is already booked");
     }
     if (!selectedSeats.includes(seatId) && selectedSeats.length > 4) {
       return toast("You can only select 5 seats");
@@ -103,79 +92,66 @@ const SeatLayout = () => {
     );
   };
 
-
-
-
-
-  const bookTickets=async()=>{
-
+  const bookTickets = async () => {
     try {
-      if(!user){
+      if (!user) {
         return toast.error("Please login first");
       }
 
-      if(!selectedTime || !selectedSeats.length){
+      if (!selectedTime || !selectedSeats.length) {
         return toast.error("Please select time and seats first");
       }
 
-      const {data}=await axios.post(`/api/bookings/create`,{showId:selectedTime.showId,selectedSeats}, {
-        headers: { Authorization: `Bearer ${await getToken()}` },
-      }   )
+      const { data } = await axios.post(
+        `/api/bookings/create`,
+        { showId: selectedTime.showId, selectedSeats },
+        {
+          headers: { Authorization: `Bearer ${await getToken()}` },
+        },
+      );
 
-      if(data.success){
-       window.location.href=data.url;
-      }
-
-      else{
+      if (data.success) {
+        window.location.href = data.url;
+      } else {
         toast.error(data.message);
       }
-      
     } catch (error) {
       console.log(error.message);
-      
-      
     }
-
-  }
+  };
 
   //its a component can even place in a separate file returns a single div
-  const renderSeats = (row, count = 7) => {return (
-    <div key={row} className="flex gap-2 mt-2">
-      <div className="flex flex-wrap items-center justify-center gap-2 ">
-        {Array.from({ length: count }, (_, i) => {
-          const seatId = `${row}${i + 1}`;
-          return (
-            <button
-              key={seatId}
-              //you can pass a variable inside return inside a handler function so each button is like handleSeatselect(A1) or A2 like this hardcoded values not variable arguement
-              onClick={() => handleSeatClick(seatId)}
-              className={`h-8 w-8 rounded border border-primary/60 cursor-pointer ${selectedSeats.includes(seatId) && "bg-primary text-white"} ${occupiedSeats.includes(seatId) && "opacity-50"}   `}
-            >
-              {seatId}
-            </button>
-
-          
-
-
-
-          );
-        })}
+  const renderSeats = (row, count = 7) => {
+    return (
+      <div key={row} className="flex gap-2 mt-2">
+        <div className="flex flex-wrap items-center justify-center gap-2 ">
+          {Array.from({ length: count }, (_, i) => {
+            const seatId = `${row}${i + 1}`;
+            return (
+              <button
+                key={seatId}
+                //you can pass a variable inside return inside a handler function so each button is like handleSeatselect(A1) or A2 like this hardcoded values not variable arguement
+                onClick={() => handleSeatClick(seatId)}
+                className={`h-8 w-8 rounded border border-primary/60 cursor-pointer ${selectedSeats.includes(seatId) && "bg-primary text-white"} ${occupiedSeats.includes(seatId) && "opacity-50"}   `}
+              >
+                {seatId}
+              </button>
+            );
+          })}
+        </div>
       </div>
-    </div>
- ) };
+    );
+  };
 
   useEffect(() => {
     getShow();
   }, []);
 
   useEffect(() => {
-    if(selectedTime){
+    if (selectedTime) {
       getoccupiedseats();
     }
-    
   }, [selectedTime]);
-
-
 
   return show ? (
     <div

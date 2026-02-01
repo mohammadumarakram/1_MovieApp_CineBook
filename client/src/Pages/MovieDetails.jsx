@@ -8,7 +8,7 @@ import timeFormat from "../lib/timeFormat";
 import DateSelect from "../components/DateSelect";
 import MovieCard from "../components/MovieCard";
 import Loading from "../components/Loading";
-import { useAppContext } from "../context/appContext";
+import { useAppContext } from "../context/AppContext";
 import toast from "react-hot-toast";
 
 const MovieDetails = () => {
@@ -38,40 +38,28 @@ const MovieDetails = () => {
     }
   };
 
-
-  const handleFavorite=async()=>{
-
+  const handleFavorite = async () => {
     try {
-      if(!user){
+      if (!user) {
         return toast.error("please login first");
-
       }
 
-      const {data}=await axios.post('/api/user/update-favorite',{movieId:id},{
-        headers: { Authorization: `Bearer ${await getToken()}` },
-      })
+      const { data } = await axios.post(
+        "/api/user/update-favorite",
+        { movieId: id },
+        {
+          headers: { Authorization: `Bearer ${await getToken()}` },
+        },
+      );
 
-      if(data.success){
-        await fetchFavoriteMovies()
+      if (data.success) {
+        await fetchFavoriteMovies();
         toast.success(data.message);
       }
-      
     } catch (error) {
       console.log("error");
-      
-      
     }
-
-  }
-
-
-
-
-
-
-
-
-
+  };
 
   useEffect(() => {
     getShow();
@@ -127,11 +115,14 @@ const MovieDetails = () => {
             >
               Buy Tickets
             </a>
-            <button onClick={handleFavorite}
+            <button
+              onClick={handleFavorite}
               className="bg-gray-700 p-2.5 rounded-full transition
   cursor-pointer active:scale-95"
             >
-              <Heart className={`w-5 h-5 ${favoriteMovies.find(movie=>movie._id==id)?'fill-primary text-primary':""}`} />
+              <Heart
+                className={`w-5 h-5 ${favoriteMovies.find((movie) => movie._id == id) ? "fill-primary text-primary" : ""}`}
+              />
             </button>
           </div>
         </div>

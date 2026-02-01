@@ -1,14 +1,14 @@
-import React, { useState, useEffect } from 'react';
-import { dummyShowsData } from '../../assets/assets';
-import { dateFormat } from '../../lib/dateFormat';
-import Loading from '../../components/Loading';
-import Title from '../../components/admin/Title';
-import { useAppContext } from '../../context/appContext';
+import React, { useState, useEffect } from "react";
+import { dummyShowsData } from "../../assets/assets";
+import { dateFormat } from "../../lib/dateFormat";
+import Loading from "../../components/Loading";
+import Title from "../../components/admin/Title";
+import { useAppContext } from "../../context/AppContext";
 
-// Note: You mentioned you will handle local imports like Title, Loading, 
+// Note: You mentioned you will handle local imports like Title, Loading,
 // dateFormat, and assets on your own.
 const ListShow = () => {
-  const { axios, getToken, user} = useAppContext();
+  const { axios, getToken, user } = useAppContext();
 
   const currency = import.meta.env.VITE_CURRENCY;
 
@@ -17,13 +17,12 @@ const ListShow = () => {
 
   const getAllShows = async () => {
     try {
-
-      const {data}=await axios.get("/api/admin/all-shows",{
+      const { data } = await axios.get("/api/admin/all-shows", {
         headers: { Authorization: `Bearer ${await getToken()}` },
-      })
+      });
 
       setShows(data.shows);
-      
+
       setLoading(false);
     } catch (error) {
       console.error(error);
@@ -31,19 +30,13 @@ const ListShow = () => {
   };
 
   useEffect(() => {
-
-    
-      getAllShows();
-
-
-    
-    
+    getAllShows();
   }, []);
 
   return !loading ? (
     <>
       <Title text1="List" text2="Shows" />
-      
+
       <div className="max-w-4xl mt-6 overflow-x-auto">
         <table className="w-full border-collapse rounded-md overflow-hidden text-nowrap">
           <thead>
@@ -54,15 +47,21 @@ const ListShow = () => {
               <th className="p-2 font-medium">Earnings</th>
             </tr>
           </thead>
-          
+
           <tbody className="text-sm font-light">
             {shows.map((show, index) => (
-              <tr key={index} className="border-b border-primary/10 bg-primary/5 even:bg-primary/10">
+              <tr
+                key={index}
+                className="border-b border-primary/10 bg-primary/5 even:bg-primary/10"
+              >
                 <td className="p-2 min-w-45 pl-5">{show.movie.title}</td>
                 <td className="p-2">{dateFormat(show.showDateTime)}</td>
-                <td className="p-2">{Object.keys(show.occupiedSeats).length}</td>
                 <td className="p-2">
-                  {currency} {Object.keys(show.occupiedSeats).length * show.showPrice}
+                  {Object.keys(show.occupiedSeats).length}
+                </td>
+                <td className="p-2">
+                  {currency}{" "}
+                  {Object.keys(show.occupiedSeats).length * show.showPrice}
                 </td>
               </tr>
             ))}
@@ -73,6 +72,6 @@ const ListShow = () => {
   ) : (
     <Loading />
   );
-}
+};
 
 export default ListShow;

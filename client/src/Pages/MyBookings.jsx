@@ -4,89 +4,65 @@ import Loading from "../components/Loading";
 import BlurCircle from "../components/BlurCircle";
 import timeFormat from "../lib/timeFormat";
 import { dateFormat } from "../lib/dateFormat";
-import { useAppContext } from "../context/appContext";
+import { useAppContext } from "../context/AppContext";
 import { Link } from "react-router-dom";
 
 const MyBookings = () => {
-
-   const {
+  const {
     shows,
     axios,
     getToken,
     user,
-    
+
     image_base_url,
   } = useAppContext();
-
 
   const currency = import.meta.env.VITE_CURRENCY;
 
   const [bookings, setBookings] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
-//   const getMyBookings = async () => {
+  //   const getMyBookings = async () => {
 
-//     try {
+  //     try {
 
-//       const {data}=axios.get("/api/user/bookings",{
-//         headers: { Authorization: `Bearer ${await getToken()}` },
-//       })
+  //       const {data}=axios.get("/api/user/bookings",{
+  //         headers: { Authorization: `Bearer ${await getToken()}` },
+  //       })
 
-//       if(data.success){
-//         setBookings(data.bookings);
+  //       if(data.success){
+  //         setBookings(data.bookings);
 
-//       }
-      
-//     } catch (error) {
-//       console.log(error.message);
-      
-      
-//     }
-//  setIsLoading(false);
+  //       }
 
+  //     } catch (error) {
+  //       console.log(error.message);
 
+  //     }
+  //  setIsLoading(false);
 
-    
+  //   };
 
+  const getMyBookings = async () => {
+    try {
+      const { data } = await axios.get("/api/user/bookings", {
+        headers: { Authorization: `Bearer ${await getToken()}` },
+      });
 
-
-
-
-
-
-
-//   };
-
-
-const getMyBookings = async () => {
-  try {
-    const { data } = await axios.get("/api/user/bookings", {
-      headers: { Authorization: `Bearer ${await getToken()}` },
-    });
-
-    if (data.success) {
-      setBookings(data.bookings);
+      if (data.success) {
+        setBookings(data.bookings);
+      }
+    } catch (error) {
+      console.log(error.message);
+    } finally {
+      setIsLoading(false);
     }
-  } catch (error) {
-    console.log(error.message);
-  } finally {
-    setIsLoading(false);
-  }
-};
-
-
-
-
- 
+  };
 
   useEffect(() => {
-
-    if(user){
-          getMyBookings();
-
-
+    if (user) {
+      getMyBookings();
     }
-
   }, [user]);
 
   return !isLoading ? (
@@ -104,7 +80,7 @@ const getMyBookings = async () => {
         >
           <div className="flex flex-col md:flex-row">
             <img
-              src={image_base_url+item.show.movie.poster_path}
+              src={image_base_url + item.show.movie.poster_path}
               alt=""
               className="md:max-w-45 aspect-video h-auto object-cover object-bottom rounded"
             />
@@ -128,7 +104,10 @@ const getMyBookings = async () => {
                 {item.amount}
               </p>
               {!item.isPaid && (
-                <Link to={item.paymentLink} className="bg-primary px-4 py-1.5 mb-3 text-sm rounded-full font-medium cursor-pointer" >
+                <Link
+                  to={item.paymentLink}
+                  className="bg-primary px-4 py-1.5 mb-3 text-sm rounded-full font-medium cursor-pointer"
+                >
                   Pay Now
                 </Link>
               )}
